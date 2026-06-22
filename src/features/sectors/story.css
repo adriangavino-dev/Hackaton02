@@ -1,0 +1,65 @@
+/* Estilos del Sector Story Engine (CP5).
+   Estrategia de mejora progresiva:
+   - El contenido SIEMPRE es visible por defecto (fallback funcional y a11y).
+   - Solo si el navegador soporta scroll-driven animations y el usuario NO pide
+     reduced-motion, se activan las animaciones ligadas al scroll. */
+
+.story-stage__inner {
+  /* Estado base: completamente visible. Garantiza que con fallback o reduced
+     motion no se pierda contenido. */
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Visual persistente: transicion suave del color al cambiar de etapa. */
+.story-visual {
+  transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+
+/* Barra de progreso (fallback): el ancho/alto lo controla JS via inline style. */
+.story-progress__fill {
+  transition: transform 0.2s linear;
+  transform-origin: left center;
+}
+
+/* ---- Mejora con CSS Scroll-driven Animations ---- */
+@supports (animation-timeline: view()) and (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-driven .story-stage__inner {
+      opacity: 0.15;
+      transform: translateY(36px) scale(0.98);
+      animation: stage-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 40%;
+    }
+
+    @keyframes stage-reveal {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Progreso puramente CSS ligado al scroll del documento. */
+    .scroll-driven .story-progress__fill--css {
+      transform: scaleX(0);
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    @keyframes progress-grow {
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
+}
+
+/* ---- View Transition entre resumen e historia ---- */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(story-root),
+  ::view-transition-new(story-root) {
+    animation-duration: 0.45s;
+  }
+}
