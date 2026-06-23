@@ -73,7 +73,7 @@ VITE_PASSWORD=Pizza-TEAM-001
 - **Netlify:** `netlify.toml` + `public/_redirects` configuran build y SPA fallback.
   Definir `VITE_API_BASE_URL`.
 
-**Link del deploy:** _(completar tras el deploy)_
+**Link del deploy:** https://tropelcare-control-room.vercel.app
 
 ## Checkpoints — dónde está cada cosa
 

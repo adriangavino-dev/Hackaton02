@@ -1,0 +1,6 @@
+# El backend es del profesor y NO se despliega aqui (frontend only).
+backend
+# Mock backend solo para desarrollo local.
+mock-server
+node_modules
+dist
