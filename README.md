@@ -6,10 +6,10 @@ hackathon frontend (5 checkpoints, evaluación todo-o-nada).
 
 ## Integrantes
 
-| Nombre | Código | Rol sugerido |
-|:-------|:-------|:-------------|
-| _Adrian Piero Gavino Navarrete_ | _202510483_ | A: auth, layout, dashboard, deploy |
-| _Nestor Alonso De La Cruz Gomez_ | _202420110_ | B: Tropeles, filtros URL, feed |
+| Nombre | Código |
+|:-------|:-------|
+| _Adrian Piero Gavino Navarrete_ | _202510483_ |
+| _Nestor Alonso De La Cruz Gomez_ | _202420110_ |
 
 ## Stack
 
