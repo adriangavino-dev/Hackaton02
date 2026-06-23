@@ -6,6 +6,9 @@ import type { SignalFilters } from './useSignalsQuery';
 import { readFeed, writeFeed } from './feedStore';
 
 interface FeedState {
+  // filterKey al que pertenecen estos datos. Evita que datos de un filtro se
+  // confundan/persistan como si fueran de otro al cambiar de filtro.
+  key: string;
   items: Signal[];
   cursor: string | null;
   hasMore: boolean;
@@ -23,7 +26,19 @@ interface UseFeedResult {
   retry: () => void;
 }
 
-const emptyState: FeedState = { items: [], cursor: null, hasMore: true, totalEstimate: 0 };
+function makeState(key: string): FeedState {
+  const cached = readFeed(key);
+  if (cached) {
+    return {
+      key,
+      items: cached.items,
+      cursor: cached.cursor,
+      hasMore: cached.hasMore,
+      totalEstimate: cached.totalEstimate,
+    };
+  }
+  return { key, items: [], cursor: null, hasMore: true, totalEstimate: 0 };
+}
 
 // Feed infinito cursor-based con:
 // - una sola carga en vuelo (loadingRef);
@@ -32,9 +47,8 @@ const emptyState: FeedState = { items: [], cursor: null, hasMore: true, totalEst
 // - cancelacion de la request al cambiar filtros o desmontar;
 // - restauracion desde cache al volver del detalle.
 export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFeedResult {
-  const cached = readFeed(filterKey);
-  const [state, setState] = useState<FeedState>(cached ?? emptyState);
-  const [loadingInitial, setLoadingInitial] = useState(!cached);
+  const [state, setState] = useState<FeedState>(() => makeState(filterKey));
+  const [loadingInitial, setLoadingInitial] = useState(() => !readFeed(filterKey));
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,10 +57,19 @@ export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFee
   const stateRef = useRef<FeedState>(state);
   stateRef.current = state;
 
-  // Persistir en cache en cada cambio de estado para sobrevivir a la navegacion.
+  // Persistir en cache solo cuando el estado corresponde al filtro actual. El
+  // guard `state.key === filterKey` evita escribir datos viejos en la cache del
+  // filtro nuevo durante el render en que cambia filterKey.
   useEffect(() => {
+    if (state.key !== filterKey) return;
     const prev = readFeed(filterKey);
-    writeFeed(filterKey, { ...state, scrollY: prev?.scrollY ?? 0 });
+    writeFeed(filterKey, {
+      items: state.items,
+      cursor: state.cursor,
+      hasMore: state.hasMore,
+      totalEstimate: state.totalEstimate,
+      scrollY: prev?.scrollY ?? 0,
+    });
   }, [state, filterKey]);
 
   const fetchPage = useCallback(
@@ -81,6 +104,7 @@ export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFee
             const seen = new Set(base.map((s) => s.id));
             const merged = base.concat(res.items.filter((s) => !seen.has(s.id)));
             return {
+              key: filterKey,
               items: merged,
               cursor: res.nextCursor,
               hasMore: res.hasMore,
@@ -101,17 +125,19 @@ export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFee
 
       return () => controller.abort();
     },
-    [filters.signalType, filters.severity, filters.status, filters.q],
+    [filterKey, filters.signalType, filters.severity, filters.status, filters.q],
   );
 
-  // Al cambiar filtros: invalidar generacion, resetear (o restaurar cache) y cargar.
+  // Al cambiar filtros: invalidar generacion, restaurar cache (si hay) o resetear
+  // y cargar la primera pagina del nuevo filtro.
   useEffect(() => {
     generationRef.current += 1;
     loadingRef.current = false;
     const fromCache = readFeed(filterKey);
     if (fromCache && fromCache.items.length > 0) {
-      // Restaurar sin recargar (volver del detalle o re-montaje).
+      // Restaurar sin recargar (volver del detalle o re-montaje con mismo filtro).
       setState({
+        key: filterKey,
         items: fromCache.items,
         cursor: fromCache.cursor,
         hasMore: fromCache.hasMore,
@@ -121,7 +147,7 @@ export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFee
       setError(null);
       return;
     }
-    setState(emptyState);
+    setState({ key: filterKey, items: [], cursor: null, hasMore: true, totalEstimate: 0 });
     setError(null);
     fetchPage('initial');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,7 +155,7 @@ export function useSignalFeed(filters: SignalFilters, filterKey: string): UseFee
 
   const loadMore = useCallback(() => fetchPage('more'), [fetchPage]);
   const retry = useCallback(() => {
-    // Reintenta la siguiente pagina sin borrar lo ya cargado.
+    // Reintenta sin borrar lo ya cargado.
     if (stateRef.current.items.length === 0) fetchPage('initial');
     else fetchPage('more');
   }, [fetchPage]);
