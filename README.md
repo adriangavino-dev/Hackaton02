@@ -8,9 +8,8 @@ hackathon frontend (5 checkpoints, evaluación todo-o-nada).
 
 | Nombre | Código | Rol sugerido |
 |:-------|:-------|:-------------|
-| _(completar)_ | _(completar)_ | A: auth, layout, dashboard, deploy |
-| _(completar)_ | _(completar)_ | B: Tropeles, filtros URL, feed |
-| _(completar)_ | _(completar)_ | C: Sector Story Engine |
+| _Adrian Piero Gavino Navarrete_ | _202510483_ | A: auth, layout, dashboard, deploy |
+| _Nestor Alonso De La Cruz Gomez_ | _202420110_ | B: Tropeles, filtros URL, feed |
 
 ## Stack
 
