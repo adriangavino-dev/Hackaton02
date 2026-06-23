@@ -29,39 +29,42 @@ el scroll infinito son propios.
 ```bash
 npm install            # instalar dependencias
 
-# Desarrollo (frontend + mock backend local a la vez)
-npm run dev:all        # mock en :8787 + Vite en :5173
-
-# O por separado:
-npm run mock           # solo el mock backend (dev)
-npm run dev            # solo el frontend (proxy /api -> mock)
+npm run dev            # frontend en :5173, proxy de /api -> backend (VITE_PROXY_TARGET)
 
 npm run typecheck      # tsc -b --noEmit  (debe pasar sin errores)
 npm run build          # tsc -b && vite build  (debe pasar sin errores)
 npm run preview        # previsualizar el build
+
+# Opcional (sin internet): mock backend local determinista
+npm run dev:all        # mock en :8787 + Vite en :5173 (apunta VITE_PROXY_TARGET a :8787)
 ```
 
-Login de desarrollo (mock): `TEAM-001` … `TEAM-100` / `operator@tuckersoft.com` /
-`password-del-equipo` (configurable con `TEAM_PASSWORD` al lanzar el mock).
+El dev server hace proxy de `/api` hacia el **backend desplegado** (`VITE_PROXY_TARGET`),
+evitando CORS en local. Login: usa el `TEAM_CODE` y password de tu equipo
+(`operator@tuckersoft.com`, password con formato `Pizza-<TEAM_CODE>`).
 
 ## Variables de entorno
 
 Copia `.env.example` a `.env` y ajusta:
 
 ```properties
-# URL base de la API real (entregada por el TA), incluye /api/v1.
-VITE_API_BASE_URL=https://<backend-url>/api/v1
+# Desarrollo: usar el proxy de Vite (mismo origen, sin CORS).
+VITE_API_BASE_URL=/api/v1
+VITE_PROXY_TARGET=https://hackaton-20261-front-587720740455.us-east1.run.app
 
-# Solo para autocompletar el login en desarrollo (opcional).
+# Solo para autocompletar el login en desarrollo (ajusta a tu equipo).
 VITE_TEAM_CODE=TEAM-001
 VITE_EMAIL=operator@tuckersoft.com
-VITE_PASSWORD=password-del-equipo
+VITE_PASSWORD=Pizza-TEAM-001
 ```
 
-> En desarrollo, si `VITE_API_BASE_URL` queda como `/api/v1`, el dev server hace
-> proxy de `/api` hacia el mock local (`http://localhost:8787`). Para apuntar el
-> proxy al backend real durante dev: `MOCK_TARGET=https://<backend-url> npm run dev`.
-> **En producción debes definir `VITE_API_BASE_URL` con la URL del backend real.**
+> **Producción (Vercel/Netlify):** NO hay proxy. Define la URL completa del backend:
+> `VITE_API_BASE_URL=https://<backend-url>/api/v1`.
+>
+> ⚠️ **CORS del backend:** el backend desplegado responde
+> `Access-Control-Allow-Methods: GET,HEAD,POST`, por lo que el navegador **bloquea
+> PATCH cross-origin** (rompe CP4 "atender señal" en el deploy). El profesor debe
+> habilitar PATCH en el CORS del backend. En local no afecta porque usamos proxy.
 
 ## Deploy
 

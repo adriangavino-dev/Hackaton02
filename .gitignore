@@ -9,4 +9,6 @@ dist-ssr
 *.log
 .vite
 *.tsbuildinfo
+# Backend del profesor: no forma parte del entregable de frontend.
+backend/
 .claude/*
