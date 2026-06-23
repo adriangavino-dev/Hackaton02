@@ -2,6 +2,11 @@
 
 > Para el profesor / TA. Afecta a **todos los equipos** en la evaluación.
 
+> **Nota:** en nuestro frontend ya lo resolvimos del lado del cliente haciendo que
+> Vercel haga de proxy de `/api/*` hacia el backend (mismo origen → sin CORS), así CP4
+> funciona en nuestro deploy. Aun así reportamos el bug porque afecta a cualquier
+> equipo que llame al backend directamente cross-origin.
+
 ## Resumen
 
 El navegador bloquea el `PATCH /api/v1/signals/:id/status` (Checkpoint 4, "atender una

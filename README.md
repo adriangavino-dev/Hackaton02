@@ -57,18 +57,19 @@ VITE_EMAIL=operator@tuckersoft.com
 VITE_PASSWORD=Pizza-TEAM-001
 ```
 
-> **Producción (Vercel/Netlify):** NO hay proxy. Define la URL completa del backend:
-> `VITE_API_BASE_URL=https://<backend-url>/api/v1`.
+> **Producción (Vercel):** `VITE_API_BASE_URL=/api/v1` (relativo). El `vercel.json`
+> reescribe `/api/*` hacia el backend como **proxy de servidor** (mismo origen para el
+> navegador), igual que el proxy de Vite en local.
 >
-> ⚠️ **CORS del backend:** el backend desplegado responde
-> `Access-Control-Allow-Methods: GET,HEAD,POST`, por lo que el navegador **bloquea
-> PATCH cross-origin** (rompe CP4 "atender señal" en el deploy). El profesor debe
-> habilitar PATCH en el CORS del backend. En local no afecta porque usamos proxy.
+> ℹ️ **Por qué el proxy en producción:** el backend responde
+> `Access-Control-Allow-Methods: GET,HEAD,POST` (sin PATCH), así que un `PATCH`
+> cross-origin directo lo bloquea el navegador y rompe CP4. Al pasar todo por el proxy
+> de Vercel (mismo origen) **no hay CORS** y el PATCH funciona. Ver [`AVISO-CORS.md`](AVISO-CORS.md).
 
 ## Deploy
 
-- **Vercel:** importar el repo. `vercel.json` ya incluye el rewrite SPA para que el
-  deploy abra directamente en cualquier ruta. Definir `VITE_API_BASE_URL`.
+- **Vercel:** `vercel.json` incluye el rewrite SPA (abre directo en cualquier ruta) y
+  el proxy de `/api/*` al backend. Env var: `VITE_API_BASE_URL=/api/v1`.
 - **Netlify:** `netlify.toml` + `public/_redirects` configuran build y SPA fallback.
   Definir `VITE_API_BASE_URL`.
 
